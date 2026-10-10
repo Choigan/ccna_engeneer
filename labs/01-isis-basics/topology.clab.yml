@@ -1,0 +1,31 @@
+# Лаба 01 — IS-IS: NET, уровни L1/L2, соседства, DIS
+#
+#   area 49.0001                    |  area 49.0002
+#   [r1 L1] --- eth1/eth1 --- [r2 L1/L2] --- eth2/eth1 --- [r3 L2]
+#
+# Адресация — только документационные диапазоны (RFC 5737).
+
+name: isis01
+
+topology:
+  defaults:
+    kind: linux
+    image: quay.io/frrouting/frr:10.0.0
+
+  nodes:
+    r1:
+      binds:
+        - daemons:/etc/frr/daemons
+        - configs/r1.conf:/etc/frr/frr.conf
+    r2:
+      binds:
+        - daemons:/etc/frr/daemons
+        - configs/r2.conf:/etc/frr/frr.conf
+    r3:
+      binds:
+        - daemons:/etc/frr/daemons
+        - configs/r3.conf:/etc/frr/frr.conf
+
+  links:
+    - endpoints: ["r1:eth1", "r2:eth1"]
+    - endpoints: ["r2:eth2", "r3:eth1"]

@@ -1,0 +1,5 @@
+# Рабочие каталоги containerlab — генерируются при deploy
+clab-*/
+.clab-*
+*.bak
+.DS_Store
