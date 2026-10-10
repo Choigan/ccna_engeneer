@@ -1,0 +1,227 @@
+<title>Диагностика: модули 0–1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: одна колонка-тетрадь, вопросы как карточки билета, липкая полоса прогресса снизу */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --fg:#17202b; --muted:#5b6878; --line:#d9dfe7;
+  --accent:#1d5fd1; --accent-fg:#ffffff; --l2:#b9770e; --l3:#1d5fd1; --ok:#1e7a4a; --warn:#a4501b;
+  --field:#fbfcfd;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#161d27; --fg:#e5ebf2; --muted:#93a1b3; --line:#2a3443;
+  --accent:#6b9dff; --accent-fg:#0b1220; --l2:#e3a33a; --l3:#6b9dff; --ok:#4fc386; --warn:#f0965a;
+  --field:#121922; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#161d27; --fg:#e5ebf2; --muted:#93a1b3; --line:#2a3443;
+  --accent:#6b9dff; --accent-fg:#0b1220; --l2:#e3a33a; --l3:#6b9dff; --ok:#4fc386; --warn:#f0965a;
+  --field:#121922; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:28px 120px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:28px;line-height:1.15;margin:0;text-wrap:balance;font-weight:700}
+.lead{color:var(--muted);margin:0;max-width:62ch}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.rules li{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);background:var(--surface)}
+.section-h{font-family:var(--f-mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-top:8px}
+.section-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.q-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.num{font-family:var(--f-mono);font-weight:600;font-size:14px;color:var(--fg)}
+.tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;padding:2px 7px;border-radius:4px;border:1px solid currentColor}
+.tag.m0{color:var(--l2)} .tag.m1{color:var(--l3)}
+.tag.parts{color:var(--muted)}
+.tag.scn{color:var(--warn)}
+.done-dot{margin-left:auto;width:9px;height:9px;border-radius:50%;background:var(--line)}
+.done-dot.on{background:var(--ok)}
+.prompt{margin:0;white-space:pre-line}
+.prompt code,.mono{font-family:var(--f-mono);font-size:.92em}
+textarea{width:100%;min-height:110px;resize:vertical;font:inherit;font-size:15px;line-height:1.45;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--fg)}
+textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar-in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.prog{flex:1;min-width:140px;display:flex;flex-direction:column;gap:4px}
+.prog-t{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.track{height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--accent);transition:width .25s}
+@media (prefers-reduced-motion: reduce){.fill{transition:none}}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:default}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.note{font-size:13px;color:var(--muted)}
+.note.ok{color:var(--ok)} .note.warn{color:var(--warn)}
+.banner{border:1px solid var(--ok);color:var(--ok);border-radius:10px;padding:12px 14px;font-size:15px;background:var(--surface)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Повторение · CCNA 200-301 · диагностика 1 из 7</div>
+    <h1>Модули 0–1: как работает сеть и адресация</h1>
+    <p class="lead">12 вопросов. Цель — найти, что выветрилось, и переобъяснить только это. Ответы сохраняются сами. Когда закончишь, нажми «Сдать» и напиши в чат «готово».</p>
+    <ul class="rules">
+      <li>Сколько частей в вопросе — столько ответов</li>
+      <li>Сценарий: причина → механизм → команда</li>
+      <li>Без подсказок и поиска</li>
+    </ul>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+  <div id="list" style="display:flex;flex-direction:column;gap:14px"></div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="prog">
+      <div class="prog-t" id="progT">Отвечено 0 из 12</div>
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="note" id="saveNote">Загружаю сохранённые ответы…</div>
+    </div>
+    <div class="btns" id="btns">
+      <button id="copyBtn" type="button">Скопировать ответы</button>
+      <button id="submitBtn" class="primary" type="button">Сдать</button>
+    </div>
+    <div class="confirm" id="confirm" hidden>
+      <span id="confirmT">Сдать на проверку?</span>
+      <button id="yesBtn" class="primary" type="button">Да, сдать</button>
+      <button id="noBtn" type="button">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUIZ_ID = "m0-1";
+const QUESTIONS = [
+  {sec:"Модуль 0 — принцип работы сети"},
+  {id:"q01", m:"m0", parts:3, text:"Пользователь открывает сайт по HTTP. Опиши, что добавляется к данным на каждом уровне модели TCP/IP при отправке, и как называется PDU на транспортном, сетевом и канальном уровнях."},
+  {id:"q02", m:"m0", parts:4, text:"К какой плоскости (control / data / management) относится каждое:\n1) OSPF Hello\n2) пересылка пакета по FIB\n3) SSH-сессия на роутер\n4) SNMP-опрос Zabbix'ом"},
+  {id:"q03", m:"m0", parts:2, text:"Хост 10.0.1.10 шлёт пакет на 10.0.9.5 (другая подсеть) через два роутера.\nа) Какие IP и MAC назначения в кадре, когда он выходит с хоста?\nб) Что из этого меняется на каждом хопе, а что нет?"},
+  {id:"q04", m:"m0", parts:3, text:"Посчитай:\nа) MSS для TCP поверх обычного Ethernet с MTU 1500;\nб) MTU и MSS для абонента PPPoE;\nв) меняется ли IP MTU, если кадр уходит в транк с тегом 802.1Q? Что происходит с размером кадра?"},
+  {id:"q05", m:"m0", parts:3, scn:true, text:"Сценарий. Абоненты PPPoE жалуются: мессенджеры и мелкие страницы работают, а часть HTTPS-сайтов «висит» на загрузке, и крупные файлы не качаются. Ping до сайта проходит.\nДай тройку: причина → механизм → команда на Cisco, которая лечит."},
+  {sec:"Модуль 1 — адресация"},
+  {id:"q06", m:"m1", parts:4, text:"Адрес 172.16.37.200/27. Найди:\nа) block size;\nб) адрес сети;\nв) broadcast;\nг) диапазон хостов."},
+  {id:"q07", m:"m1", parts:4, text:"Разбей 192.168.10.0/24 через VLSM под потребности: 60 хостов, 28 хостов, 12 хостов, 2 линка точка-точка.\nДля каждой подсети — адрес сети и префикс. Распределяй от большей к меньшей, начиная с .0."},
+  {id:"q08", m:"m1", parts:2, text:"Нужно одним маршрутом анонсировать сети 10.1.4.0/24, 10.1.5.0/24, 10.1.6.0/24, 10.1.7.0/24.\nа) Какой суммарный префикс?\nб) Покажи, как ты его получил (в двоичном виде или через block size)."},
+  {id:"q09", m:"m1", parts:2, text:"MAC интерфейса 00:1A:2B:3C:4D:5E.\nа) Построй interface ID по EUI-64.\nб) Какой бит инвертируется, в каком байте, и что он означает?"},
+  {id:"q10", m:"m1", parts:2, text:"а) Сократи по правилам: 2001:0db8:0000:0000:0100:0000:0000:0001\nб) Почему нельзя написать 2001:db8::100::1?"},
+  {id:"q11", m:"m1", parts:4, text:"Что это за тип IPv6-адреса и где применяется:\n1) fe80::/10\n2) ff02::1\n3) fc00::/7\n4) 2000::/3"},
+  {id:"q12", m:"m1", parts:3, scn:true, text:"Сценарий. Монтажник поставил клиенту статику: IP 192.168.1.20/28, шлюз 192.168.1.14. Интерфейс роутера в этой сети — 192.168.1.14/28. В интернет клиент не выходит, хотя линк поднят.\nДай тройку: причина → механизм (что делает хост, когда решает, куда слать пакет) → команда/исправление."}
+];
+
+const list = document.getElementById("list");
+const state = {answers:{}, status:"draft", submittedAt:null};
+const realQs = QUESTIONS.filter(q=>q.id);
+
+let n = 0;
+for (const q of QUESTIONS){
+  if (q.sec){ const h=document.createElement("div"); h.className="section-h"; h.textContent=q.sec; list.appendChild(h); continue; }
+  n++;
+  const card=document.createElement("section"); card.className="q";
+  const top=document.createElement("div"); top.className="q-top";
+  const num=document.createElement("span"); num.className="num"; num.textContent="№"+String(n).padStart(2,"0");
+  const tg=document.createElement("span"); tg.className="tag "+q.m; tg.textContent=q.m==="m0"?"МОДУЛЬ 0":"МОДУЛЬ 1";
+  const pt=document.createElement("span"); pt.className="tag parts"; pt.textContent=q.parts+" "+(q.parts===1?"часть":q.parts<5?"части":"частей");
+  top.append(num,tg,pt);
+  if(q.scn){const s=document.createElement("span"); s.className="tag scn"; s.textContent="СЦЕНАРИЙ"; top.append(s);}
+  const dot=document.createElement("span"); dot.className="done-dot"; dot.id="dot-"+q.id; top.append(dot);
+  const p=document.createElement("p"); p.className="prompt"; p.textContent=q.text;
+  const ta=document.createElement("textarea"); ta.id=q.id; ta.placeholder="Ответ…"; ta.setAttribute("aria-label","Ответ на вопрос "+n);
+  ta.addEventListener("input",()=>{ state.answers[q.id]=ta.value; refresh(); scheduleSave(); });
+  card.append(top,p,ta); list.appendChild(card);
+}
+
+const progT=document.getElementById("progT"), fill=document.getElementById("fill"), saveNote=document.getElementById("saveNote");
+function answeredCount(){ return realQs.filter(q=>(state.answers[q.id]||"").trim().length>0).length; }
+function refresh(){
+  const c=answeredCount();
+  progT.textContent="Отвечено "+c+" из "+realQs.length;
+  fill.style.width=(c/realQs.length*100)+"%";
+  for(const q of realQs){ document.getElementById("dot-"+q.id).classList.toggle("on",(state.answers[q.id]||"").trim().length>0); }
+}
+function fillInputs(){ for(const q of realQs){ document.getElementById(q.id).value=state.answers[q.id]||""; } refresh(); }
+function setNote(t,cls){ saveNote.textContent=t; saveNote.className="note"+(cls?" "+cls:""); }
+function hhmm(){ const d=new Date(); return d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}); }
+
+// Локальная копия на случай, если сохранение на сервере недоступно
+const LS_KEY="diag-"+QUIZ_ID;
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function loadLocal(){ try{ const s=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(s&&s.answers) return s; }catch(e){} return null; }
+
+let db=null, ref=null, saveTimer=null, saving=false, pending=false;
+function scheduleSave(){ saveLocal(); clearTimeout(saveTimer); saveTimer=setTimeout(saveRemote,1500); setNote("Есть несохранённые изменения"); }
+async function saveRemote(){
+  if(!ref){ setNote("Сохранено только в этом браузере. Перед сдачей скопируй ответы в чат.","warn"); return; }
+  if(saving){ pending=true; return; }
+  saving=true;
+  try{
+    await ref.set({quiz:QUIZ_ID, answers:{...state.answers}, status:state.status, submittedAt:state.submittedAt, updatedAt:new Date().toISOString()});
+    setNote("Сохранено в "+hhmm(),"ok");
+  }catch(e){
+    if(e&&e.code==="unavailable"){ setTimeout(saveRemote,1200+Math.random()*800); setNote("Сеть подвисла, повторяю…","warn"); }
+    else setNote("Не удалось сохранить ("+(e&&e.code||"ошибка")+"). Ответы есть в этом браузере — скопируй их в чат.","warn");
+  }finally{
+    saving=false;
+    if(pending){ pending=false; saveRemote(); }
+  }
+}
+
+const banner=document.getElementById("banner");
+function showSubmitted(){
+  if(state.status==="submitted"){
+    banner.hidden=false;
+    banner.textContent="Сдано "+(state.submittedAt?new Date(state.submittedAt).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"")+". Напиши в чат «готово» — сделаю разбор. Поправить ответ ещё можно: правка сохранится, сдай повторно.";
+  } else banner.hidden=true;
+}
+
+// Сдача с подтверждением внутри страницы
+const btns=document.getElementById("btns"), confirmBox=document.getElementById("confirm"), confirmT=document.getElementById("confirmT");
+document.getElementById("submitBtn").addEventListener("click",()=>{
+  const left=realQs.length-answeredCount();
+  confirmT.textContent= left>0 ? "Без ответа: "+left+". Всё равно сдать?" : "Сдать на проверку?";
+  btns.hidden=true; confirmBox.hidden=false;
+});
+document.getElementById("noBtn").addEventListener("click",()=>{ confirmBox.hidden=true; btns.hidden=false; });
+document.getElementById("yesBtn").addEventListener("click",async()=>{
+  confirmBox.hidden=true; btns.hidden=false;
+  state.status="submitted"; state.submittedAt=new Date().toISOString();
+  saveLocal(); clearTimeout(saveTimer); await saveRemote(); showSubmitted();
+});
+
+// Копирование всех ответов текстом — запасной путь
+document.getElementById("copyBtn").addEventListener("click",async()=>{
+  let i=0; const lines=["Диагностика модулей 0–1"];
+  for(const q of realQs){ i++; lines.push("", "№"+i+": "+((state.answers[q.id]||"").trim()||"—")); }
+  const txt=lines.join("\n");
+  try{ await navigator.clipboard.writeText(txt); setNote("Ответы скопированы","ok"); }
+  catch(e){
+    const ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); setNote("Ответы скопированы","ok"); }catch(_){ setNote("Не удалось скопировать — выдели текст вручную","warn"); }
+    ta.remove();
+  }
+});
+
+// Старт: сначала локальная копия, затем сервер
+(function(){ const l=loadLocal(); if(l){ Object.assign(state,l); fillInputs(); showSubmitted(); } else refresh(); })();
+(async()=>{
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db=null; }
+  if(!db){ setNote("Сохранение на сервере недоступно в этом окне. Ответы хранятся в браузере — перед сдачей скопируй их в чат.","warn"); return; }
+  ref=db.doc("answers/"+QUIZ_ID);
+  try{
+    const snap=await ref.get();
+    if(snap.exists){
+      const d=snap.data()||{};
+      state.answers={...(d.answers||{})}; state.status=d.status||"draft"; state.submittedAt=d.submittedAt||null;
+      saveLocal(); fillInputs(); showSubmitted();
+      setNote("Ответы загружены","ok");
+    } else {
+      if(answeredCount()>0) saveRemote(); else setNote("Ответы будут сохраняться сами");
+    }
+  }catch(e){ setNote("Не удалось загрузить сохранённое ("+(e&&e.code||"ошибка")+"). Пиши — сохраню при изменении.","warn"); }
+})();
+</script>
